@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=width-device, initial-scale=1">
+  <link rel="stylesheet" href="stylesheets/stylesheet.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.6/cerulean/bootstrap.css">
+  <title>Utah Weather</title>
+</head>
+<body>
+  <div id = "backg" class="container-fluid">
+    <div class="jumbotron">
+      <div class="row">
+        <div class="col-sm-3">
+          <img class="image" alt="sun" src="images/sun.png"/>
+        </div>
+        <div class="col-sm-6">
+          <h1>Utah Weather</h1>
+          <br/><br/>
+          <form>
+            Enter a City: <input type="text" id="cityfield" value="">
+	           <input id="button" class="btn-default" type="submit" value="Submit">
+             <br/><br/>
+	          <div id="suggestions">
+              <div class="row clip">
+                <div class="col-xs-6">
+                  Suggestion: <span id="txtHint"></span>
+                </div>
+                <div class="col-xs-6">
+                  City
+		  <br/>
+                  <textarea id="dispcity">No City</textarea>
+                </div>
+              </div>
+	          </div>
+          </form>
+        </div>
+        <div class="col-sm-3">
+          <img class="image" alt="snow" src="images/snow.png"/>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <h3>Location</h3>
+      <div id="location"></div>
+    </div>
+    <div class="col-sm-4">
+      <h3>Weather</h3>
+      <div id="weather"></div>
+    </div>
+    <div class="col-sm-4">
+      <h3>Wind</h3>
+      <div id="wind"></div>
+    </div>
+
+  </div>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script>
+    $( "#cityfield" ).keyup(function() {
+    var url = "../getCity?q="+$("#cityfield").val();
+    $.getJSON(url, function(data) {
+    var everything;
+    everything = "<ul>";
+    $.each(data, function(i,item) {
+      everything += "<li> "+data[i].city;
+    });
+    everything += "</ul>";
+    $("#txtHint").html(everything);
+    })
+    .done(function() { console.log('getJSON request succeeded!'); })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+    console.log('getJSON request failed! ' + textStatus);
+    console.log("incoming "+jqXHR.responseText);
+    })
+    .always(function() { console.log('getJSON request ended!');
+    })
+    .complete(function() { console.log("complete"); });
+    });
+
+    $("#button").click(function(e){
+    var value = $("#cityfield").val();
+    console.log(value);
+    e.preventDefault();
+    $("#dispcity").html(value);
+
+    var myurl = "http://api.wunderground.com/api/3f6c0b7872bab11a/conditions/q/UT/";
+    myurl += value+ '.json';
+
+    $.ajax({
+      url: myurl,
+      dataType: "jsonp",
+      success : function(data) {
+      console.log(data);
+
+      var location = data.current_observation.display_location.full;
+      var latitude = data.current_observation.display_location.latitude;
+      var longitude = data.current_observation.display_location.longitude;
+
+      var temp_string = data.current_observation.temperature_string;
+      var current_weather = data.current_observation.weather;
+      var relative_humidity = data.current_observation.relative_humidity;
+
+      var wind_string = data.current_observation.wind_string;
+      var wind_dir = data.current_observation.wind_dir;
+      var wind_mph = data.current_observation.wind_mph;
+
+      var locationText = "";
+      locationText += "<p>Location: " + location + "</p>";
+      locationText += "<p>Latitude: " + latitude + "</p>";
+      locationText += "<p>Longitude: " + longitude + "</p>";
+      $("#location").html(locationText);
+
+      var weatherText = "";
+      weatherText += "<p>Weather: " + current_weather + "</p>";
+      weatherText += "<p>Temperature: " + temp_string + "</p>";
+      weatherText += "<p>Relative Humidity: " + relative_humidity + "</p>";
+      $("#weather").html(weatherText);
+
+      var windText = "";
+      windText += "<p>Description: " + wind_string + "</p>";
+      windText += "<p>Direction: " + wind_dir + "</p>";
+      windText += "<p>Speed (mph): " + wind_mph + "</p>";
+      $("#wind").html(windText);
+      }
+    })
+
+    });
+
+</script>
+</body>
+</html>
